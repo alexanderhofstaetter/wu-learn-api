@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Required: pip install python-dateutil beautifulsoup4 requests argparse lxml
-
 
 import requests, dill, sys, base64, datetime, re, os, time
 from lxml import html
@@ -68,20 +66,26 @@ class WuLearnApi():
 		if not os.path.exists(os.path.dirname(self.sessionfile)):
 			try:
 				os.makedirs(os.path.dirname(self.sessionfile))
-			except OSError as exc:
+			except:
 				if exc.errno != errno.EEXIST:
 					raise
 		with open(self.sessionfile, 'wb') as f:
-			dill.dump([self.session, self.status], f)	
+			try:
+				dill.dump([self.session, self.status], f)	
+			except:
+				return False
 		return True
 
 
 	def load_session(self):
 		if os.path.isfile(self.sessionfile):
 			with open(self.sessionfile, 'rb') as f:
-				self.session, self.status = dill.load(f)
+				try:
+					self.session, self.status = dill.load(f)
+				except:
+					return False
 			return True
-		return False
+
 
 	def login(self):
 		r = self.session.get(self.LOGIN_URL, headers = self.headers)
@@ -213,7 +217,7 @@ class WuLearnApi():
 		return self.data
 
 
-	def getResult(self):
+	def getResults(self):
 		status = self.status
 		status["last_logged_in"] = self.status["last_logged_in"].strftime("%Y-%m-%d %H:%M:%S")
 		return {
