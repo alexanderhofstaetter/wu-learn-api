@@ -19,13 +19,15 @@ class WuLearnApi():
 	sessionfile = "%s.bin"
 	sessiontimeout = "2"
 
-	def __init__(self, username=None, password=None, tor="false", sessiondir=None):
+	def __init__(self, username=None, password=None, tor="false", sessiondir=None, new_session=None):
 		self.username = username
 		self.password = password
 		self.matr_nr = username[1:]
 
 		self.sessiondir = sessiondir
+		self.new_session = new_session
 
+		self.data = {}
 		self.status = {}
 		self.session = requests.session()
 		self.session.hooks['response'].append(self.response_hook)
@@ -39,6 +41,7 @@ class WuLearnApi():
 			self.session.proxies = {}
 			self.session.proxies['http'] = 'socks5://localhost:9050'
 			self.session.proxies['https'] = 'socks5://localhost:9050'
+
 		self.auth()
 
 	def response_hook(self, r, *args, **kwargs):
@@ -55,12 +58,20 @@ class WuLearnApi():
 
 
 	def auth(self):
-		if self.load_session() and self.status["last_logged_in"] >= datetime.datetime.now()-timedelta(hours=int(self.sessiontimeout)):
-			self.status["loaded_session_valid"] = True
+		if not self.new_session == "true":
+			if self.load_session() and self.status["last_logged_in"] >= datetime.datetime.now()-timedelta(hours=int(self.sessiontimeout)):
+				self.status["loaded_session_valid"] = True
 		else:
 			self.status["loaded_session_valid"] = False
 			self.login()
-		
+
+
+	def clear_session(self):
+		self.session.cookies.clear()
+		if os.path.isfile(self.sessionfile):
+			os.remove(self.sessionfile)
+		return True
+				
 
 	def save_session(self):
 		if not os.path.exists(os.path.dirname(self.sessionfile)):
@@ -88,21 +99,27 @@ class WuLearnApi():
 
 
 	def login(self):
+		payload = self.loginpayload()
+		self.data = {}
+		self.session.post(self.LOGIN_URL, data = payload, headers = self.headers, allow_redirects=False)
+
+
+	def loginpayload(self):
+		self.clear_session()
 		r = self.session.get(self.LOGIN_URL, headers = self.headers)
 		tree = html.fromstring(r.text)
-
-		# Perform login
-		payload = {
+		self.data = {
 			"username": self.username, 
 			"password": self.password, 
 			"form:mode": "edit", 
 			"form:id": "login", 
 			"return_url": "/",
-			"time": list(set(tree.xpath("//input[@name='time']/@value"))),
-			"token_id": list(set(tree.xpath("//input[@name='token_id']/@value"))),
-			"hash": list(set(tree.xpath("//input[@name='hash']/@value"))),
+			"time": list(set(tree.xpath("//input[@name='time']/@value")))[0],
+			"token_id": list(set(tree.xpath("//input[@name='token_id']/@value")))[0],
+			"hash": list(set(tree.xpath("//input[@name='hash']/@value")))[0],
 		}
-		self.session.post(self.LOGIN_URL, data = payload, headers = self.headers, allow_redirects=False)
+		return self.data
+
 
 	def exams(self):
 		self.exams = {}
@@ -219,7 +236,8 @@ class WuLearnApi():
 
 	def getResults(self):
 		status = self.status
-		status["last_logged_in"] = self.status["last_logged_in"].strftime("%Y-%m-%d %H:%M:%S")
+		if "last_logged_in" in status:
+			status["last_logged_in"] = self.status["last_logged_in"].strftime("%Y-%m-%d %H:%M:%S")
 		return {
 			"data" : self.data, 
 			"status" : self.status

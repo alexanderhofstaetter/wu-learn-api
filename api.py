@@ -17,6 +17,7 @@ if __name__ == '__main__':
 	parser.add_argument('-c', '--credfile', help='Path to the credentials file with username and password')
 	parser.add_argument('-p', '--password')
 	parser.add_argument('-u', '--username')
+	parser.add_argument('-n', '--new_session', help="Forces to start a new session", choices=["true", "false"], default="false")
 	parser.add_argument('-s', '--sessiondir', help='Dir where the sessions should be stored')
 	parser.add_argument('-t', '--tor', choices=["true", "false"], default="false")
 	args=parser.parse_args()
@@ -24,7 +25,7 @@ if __name__ == '__main__':
 	username = file_parser(args.credfile)["username"] if args.credfile else args.username
 	password = file_parser(args.credfile)["password"] if args.credfile else args.password
 	
-	api = WuLearnApi(username, password, args.tor, args.sessiondir)
+	api = WuLearnApi(username, password, args.tor, args.sessiondir, args.new_session)
 	method = getattr(api, args.action, None)
 	if callable(method):
 		method()
