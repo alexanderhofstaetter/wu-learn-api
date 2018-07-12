@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests, dill, sys, base64, datetime, re, os, time
+import requests, dill, sys, base64, datetime, re, os, time, hashlib, pickle
 from lxml import html
 from datetime import timedelta
 from dateutil import parser
@@ -41,7 +41,6 @@ class WuLearnApi():
 			self.session.proxies = {}
 			self.session.proxies['http'] = 'socks5://localhost:9050'
 			self.session.proxies['https'] = 'socks5://localhost:9050'
-
 		self.auth()
 
 	def response_hook(self, r, *args, **kwargs):
@@ -58,9 +57,8 @@ class WuLearnApi():
 
 
 	def auth(self):
-		if not self.new_session == "true":
-			if self.load_session() and self.status["last_logged_in"] >= datetime.datetime.now()-timedelta(hours=int(self.sessiontimeout)):
-				self.status["loaded_session_valid"] = True
+		if self.load_session() and self.new_session != "true" and self.status["last_logged_in"] >= datetime.datetime.now()-timedelta(hours=int(self.sessiontimeout)):
+			self.status["loaded_session_valid"] = True
 		else:
 			self.status["loaded_session_valid"] = False
 			self.login()
@@ -190,7 +188,7 @@ class WuLearnApi():
 	def lvs(self):
 		r = self.session.get(self.URL + "/dotlrn/", headers = self.headers)
 		soup = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser')
-
+		
 		self.lvs = {}
 		for lv in soup.find('li', {"id" : re.compile('dotlrn_class_instance')}).find_all('a', href=True):
 			key = str(lv['href'][-9:-1])
