@@ -1,18 +1,20 @@
 # WU Learn API
 
-Eine Python API für das E-Learning System der WU Wien "[Learn@WU](https://learn.wu.ac.at/)". Die API verwendet python.requests und BeautifulSoup um die Daten zu parsen und liefert die extrahiertem Daten anschließend im JSON Format zurück.
+Eine Python API für das E-Learning System der WU Wien "[Learn@WU](https://learn.wu.ac.at/)". Die API verwendet *python.requests* und *BeautifulSoup* um die Daten zu parsen und liefert die extrahiertem Daten anschließend im JSON Format zurück.
 
-Die Plattform Learn@WU basiert auf [DotLRN](http://www.dotlrn.org/).
+Die Learn@WU Plattform basiert auf [DotLRN](http://www.dotlrn.org/).
 
 Diese API ist der Kern der [Flips Anwendung](https://flips.hofstaetter.io/). Siehe auch: [alexanderhofstaetter/flips](https://github.com/alexanderhofstaetter/flips)
 
 ## Dependencies (u.a.)
 
+Siehe auch die `import` Anweisungen in der Definition der Klasse `WuLearnApi`. 
+
 `pip install python-dateutil beautifulsoup4 requests argparse lxml dill`
 
 ## Authentifizierung
 
-Entweder über die parameter --username und --password die Zugangsdaten übermitteln, oder alternativ ein CredentialsFile mit --credfile angeben.
+Entweder über die parameter `--username` und `--password` die Zugangsdaten übermitteln, oder alternativ ein CredentialsFile mit `--credfile` angeben.
 
 Das credfile muss folgendes Format aufweisen.
 
@@ -21,13 +23,19 @@ username=_USER_
 password=_PASS_
 ```
 
-## Programmaufruf
+## API Aufruf (Beispiel)
 
 `python api.py --username=_USER_ --password=_PASS_ --action=_ACTION_`
 
-Als Action stehen folgende Methoden zur Verfügung.
+Folgende Methoden stehen zur Auswahl. Diese können mit dem Parameter `--action` angegeben werden. Alternativ kann auch direkt die Klasse importiert werden und eine neuees Objekt instanziert werden. Die Ergebnisse eines Aufrufs können entweder vom Rückgabewert der Methode, oder aus der Variable data abgefragt werden.
 
-### lvs()
+```
+api = WuLearnApi(username, password)
+api.lvs()
+print json.dumps(api.getResults(), sort_keys=True, indent=4)
+``` 
+
+### lvs
 Liefert alle aktuellen und aktiven Lehrveranstaltungen.
 
 ``` json
@@ -45,7 +53,7 @@ Liefert alle aktuellen und aktiven Lehrveranstaltungen.
 ```
 
 
-### grades()
+### grades
 Liefert alle Noten in den Notenbücher der LVs.
 ```
 "grades": {
@@ -63,8 +71,8 @@ Liefert alle Noten in den Notenbücher der LVs.
 }
 ```
 
-### exams()
-Liefert alle vorhanden Prüfungen aus der Prüfungseinsicht zurück.
+### exams
+Liefert alle vorhanden Prüfungen aus der Prüfungseinsicht zurück. Das Datenfeld `pdf` beinhaltet das PDF File (BASE64 kodiert).
 ```
 "1": {
 	"date": "30.01.2018", 
@@ -74,7 +82,7 @@ Liefert alle vorhanden Prüfungen aus der Prüfungseinsicht zurück.
 }, 
 ```
 
-### exams()
+### news
 Liefert alle sichtbaren Ankündigungen.
 ```
 "data": {
@@ -91,7 +99,7 @@ Liefert alle sichtbaren Ankündigungen.
 ```
 
 ## Caching
-Die API speichert die aktuelle session in einem File und setzt, sofern diese gültig ist, bei einem neuen Aufruf die alte Session fort.
+Die API speichert die aktuelle session in einer Datei und setzt, sofern diese gültig ist, bei einem neuen Aufruf die alte Session fort. Dadurch kann die Anzahl der notwendigen Requests minimiert werden.
 
 # Copyright & License
 
