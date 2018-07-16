@@ -122,10 +122,12 @@ class WuLearnApi():
 	def exams(self):
 		self.exams = {}
 
-		r = self.session.get(self.URL + "/einsicht/", headers = self.headers)
-		soup = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser')
+		examlist = None;
+		while examlist == None:
+			r = self.session.get(self.URL + "/einsicht/", headers = self.headers)
+			examlist = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('table', {"class" : "list-table"}).find('tbody').find_all('tr')
 
-		for i, entry in enumerate( [item for item in soup.find('table', {"class" : "list-table"}).find('tbody').find_all('tr') if item.select('td[headers="exams_result_available"]')[0].text.strip() == "Ja"] ):
+		for i, entry in enumerate( [item for item in examlist if item.select('td[headers="exams_result_available"]')[0].text.strip() == "Ja"] ):
 			self.exams[i] = {}
 
 			self.exams[i]["date"] = entry.select('td[headers="exams_datum"]')[0].text.strip()
