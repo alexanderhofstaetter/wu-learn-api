@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests, dill, sys, base64, locale, datetime, re, os, time, hashlib, pickle
+import requests, dill, sys, base64, datetime, re, os, time, hashlib, pickle, unicodedata
 from lxml import html
 from datetime import timedelta
 from dateutil import parser
@@ -20,8 +20,6 @@ class WuLearnApi():
 	sessiontimeout = "2"
 
 	def __init__(self, username=None, password=None, tor="false", sessiondir=None, new_session=None):
-		locale.setlocale(locale.LC_TIME, 'de_DE')
-
 		self.username = username
 		self.password = password
 		self.matr_nr = username[1:]
@@ -96,6 +94,23 @@ class WuLearnApi():
 				except:
 					return False
 			return True
+
+	def translate_month(self, month):
+	    m = {
+	    		'jan' : '01',
+				'feb' : '02',
+				'mar' : '03',
+				'apr' : '04',
+				'mai' : '05',
+				'jun' : '06',
+				'jul' : '07',
+				'aug' : '08',
+				'sep' : '09',
+				'okt' : '10',
+				'nov' : '11',
+				'dez' : '12'
+	        }
+	    return m[month.strip()[:3].lower()]
 
 
 	def login(self):
@@ -179,13 +194,14 @@ class WuLearnApi():
 		for i,item in enumerate(soup.find("h3", string="Ankündigungen").parent.parent.find('div', {"class" : "panel-body"}).find_all('li')):
 			url = self.URL + item.a["href"]
 			r = self.session.get(url, headers = self.headers)
-			
+			date = unicodedata.normalize('NFKD', item.contents[2].rsplit('-',1)[1].replace('\n','').replace(')','').strip()).encode('ASCII', 'ignore')
+
 			self.news[i] = {}
 			self.news[i]["number"] = re.findall("\\d+", item.a["href"])[-1]
 			self.news[i]["lv"] = re.findall("\\d{4}[.]\\d{2}[a-z]", item.a["href"])[0]
 			self.news[i]["url"] = url
 			self.news[i]["content"] = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('div', {"class" : "newsBody"}).prettify(formatter="html")
-			self.news[i]["date"] = datetime.datetime.strptime(item.contents[2].rsplit('-',1)[1].replace('\n','').replace(')','').strip().encode("utf8"), '%d. %B %Y').strftime("%Y-%m-%d")
+			self.news[i]["date"] = date[-4:] + "-" + self.translate_month(date[4:-4]) + "-" + date[:2]
 			self.news[i]["author"] = item.contents[2].rsplit('-',1)[0].replace('\n','').replace('(','').replace('Von ','').strip()
 			self.news[i]["author_link"] = self.URL + BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('p', {"class" : "newsCredit"}).find('a')["href"]
 			self.news[i]["title"] = item.a.text.strip()
