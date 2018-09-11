@@ -200,10 +200,14 @@ class WuLearnApi():
 			self.news[i]["number"] = re.findall("\\d+", item.a["href"])[-1]
 			self.news[i]["lv"] = re.findall("\\d{4}[.]\\d{2}[a-z]", item.a["href"])[0]
 			self.news[i]["url"] = url
-			self.news[i]["content"] = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('div', {"class" : "newsBody"}).prettify(formatter="html")
+			self.news[i]["content"] = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('h1', {"class" : "pagetitle"}).find_next_sibling('div').prettify(formatter="html")
 			self.news[i]["date"] = date[-4:] + "-" + self.translate_month(date[4:-4]) + "-" + date[:2]
 			self.news[i]["author"] = item.contents[2].rsplit('-',1)[0].replace('\n','').replace('(','').replace('Von ','').strip()
-			self.news[i]["author_link"] = self.URL + BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('p', {"class" : "newsCredit"}).find('a')["href"]
+			author_url = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('p', {"class" : "newsCredit"})
+			if author_url:
+				self.news[i]["author_link"] = self.URL + author_url.find('a')["href"]
+			else:
+				self.news[i]["author_link"] = ""
 			self.news[i]["title"] = item.a.text.strip()
   	
 		self.data = self.news
