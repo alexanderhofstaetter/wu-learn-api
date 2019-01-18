@@ -103,4 +103,4 @@ Die API speichert die aktuelle session in einer Datei und setzt, sofern diese g�
 
 # Copyright & License
 
-Copyright (c) 2018 Alexander Hofstätter - Released under the [MIT license](LICENSE.md).
+Copyright (c) 2018-2019 Alexander Hofstätter - Released under the [MIT license](LICENSE.md).
