@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 class WuLearnApi():
 
 	URL = "https://learn.wu.ac.at"
-	LOGIN_URL = URL + "/register/"
+	LOGIN_URL = URL + "/open/register/"
 	headers = {
 		'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0',
 		'referer': LOGIN_URL,
@@ -150,16 +150,6 @@ class WuLearnApi():
 			self.exams[i]["date"] = entry.select('td[headers="einsichten_exam_date"]')[0].text.strip()
 			self.exams[i]["title"] = entry.select('td[headers="einsichten_exam_title"]')[0].text.strip()
 			self.exams[i]["number"] = entry.select('td[headers="einsichten_einsichtsbeleg"] a')[0]["href"][9:]
-
-			# if (i == 0):
-			# 	payload = {
-			# 		"matr_nr": self.matr_nr, 
-			# 		"password": self.password, 
-			# 		"form:mode": "edit", 
-			# 		"form:id": "confirmation",
-			# 		"id": self.exams[i]["number"]
-			# 	}
-			# 	self.session.post(self.URL + "/einsicht/index?id=" + self.exams[i]["number"], data = payload, headers = self.headers)
 			r = self.session.get(self.URL + "/einsicht/beleg?id=" + self.exams[i]["number"], headers = self.headers)
 
 			self.exams[i]["pdf"] = base64.b64encode(r.content)
