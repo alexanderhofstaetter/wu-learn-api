@@ -144,15 +144,13 @@ class WuLearnApi():
 			r = self.session.get(self.URL + "/einsicht/", headers = self.headers)
 			examlist = BeautifulSoup(r.content.decode('utf-8', 'ignore'), 'html.parser').find('table', {"class" : "table"}).find('tbody').find_all('tr')
 
-		for i, entry in enumerate( examlist ):
-			self.exams[i] = {}
-
-			self.exams[i]["date"] = entry.select('td[headers="einsichten_exam_date"]')[0].text.strip()
-			self.exams[i]["title"] = entry.select('td[headers="einsichten_exam_title"]')[0].text.strip()
-			self.exams[i]["number"] = entry.select('td[headers="einsichten_einsichtsbeleg"] a')[0]["href"][9:]
-			r = self.session.get(self.URL + "/einsicht/beleg?id=" + self.exams[i]["number"], headers = self.headers)
-
-			self.exams[i]["pdf"] = base64.b64encode(r.content)
+		if examlist:
+			for i, entry in enumerate( examlist ):
+				self.exams[i] = {}
+				self.exams[i]["date"] = entry.select('td[headers="einsichten_exam_date"]')[0].text.strip()
+				self.exams[i]["title"] = entry.select('td[headers="einsichten_exam_title"]')[0].text.strip()
+				self.exams[i]["number"] = entry.select('td[headers="einsichten_einsichtsbeleg"] a')[0]["href"][9:]
+				self.exams[i]["pdf"] = base64.b64encode(self.session.get(self.URL + "/einsicht/beleg?id=" + self.exams[i]["number"], headers = self.headers))
 
 		self.data = self.exams
 		return self.data
