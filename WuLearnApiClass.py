@@ -146,12 +146,13 @@ class WuLearnApi():
 
 		if examlist:
 			for i, entry in enumerate( examlist ):
-				if entry.find('td[headers="einsichten_einsichtsbeleg"] a'):
+				if entry.find('a'):
 					self.exams[i] = {}
 					self.exams[i]["date"] = entry.select('td[headers="einsichten_exam_date"]')[0].text.strip()
 					self.exams[i]["title"] = entry.select('td[headers="einsichten_exam_title"]')[0].text.strip()
 					self.exams[i]["number"] = entry.select('td[headers="einsichten_einsichtsbeleg"] a')[0]["href"][9:]
-					self.exams[i]["pdf"] = base64.b64encode(self.session.get(self.URL + "/einsicht/beleg?id=" + self.exams[i]["number"], headers = self.headers))
+					r = self.session.get(self.URL + "/einsicht/beleg?id=" + self.exams[i]["number"], headers = self.headers)
+					self.exams[i]["pdf"] = base64.b64encode(r.content)
 
 		self.data = self.exams
 		return self.data
