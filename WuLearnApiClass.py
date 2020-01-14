@@ -251,6 +251,10 @@ class WuLearnApi():
 		return self.data
 
 
+	def verify(self):
+		return self.status["logged_in"]
+
+
 	def getResults(self):
 		status = self.status
 		if "last_logged_in" in status:
